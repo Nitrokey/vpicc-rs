@@ -5,6 +5,18 @@ use log::warn;
 
 use crate::constants::*;
 
+pub trait VSmartCard {
+    fn get_atr(&self) -> [u8; 10];
+    // Nothing to do
+    fn power_on(&self);
+    // Nothing to do
+    fn power_off(&self);
+    // Nothing to do
+    fn reset(&self);
+    // Not implemented
+    fn execute(&self, size : u8, msg: [u8; 128]);
+}
+
 pub struct SmartCard {
     host : &'static str,
     port : u16,
@@ -20,29 +32,11 @@ impl Default for SmartCard {
 }
 
 impl SmartCard {
-
     pub fn new(host: &'static str, port: u16) -> Self {
         SmartCard{
             host : host,
             port : port,
         }
-    }
-
-    fn get_atr(&self) -> [u8; 10] {
-        // For now the ATR value is a constant, logic will be implemented later.
-        ATR_VALUE
-    }
-    // Nothing to do
-    fn power_on(&self) { println!("Power On");}
-    // Nothing to do
-    fn power_off(&self) {println!("Power Off");}
-    // Nothing to do
-    fn reset(&self) {println!("Reset");}
-    // Not implemented
-    fn execute(&self, size : u8, msg: [u8; 128]) {
-        let mut buf = vec![0; size.into()];
-        buf.copy_from_slice(&msg);
-        println!("Received APDU Comand : {:?}", buf);
     }
     pub fn run(&mut self) {
         let mut stream = TcpStream::connect((self.host, self.port)).expect("Unable to connect to VPCD");
@@ -88,5 +82,24 @@ impl SmartCard {
             }
         }
         stream.shutdown(Shutdown::Both).expect("Impossible to shut down");
+    }
+}
+
+impl VSmartCard for SmartCard {
+    fn get_atr(&self) -> [u8; 10] {
+        // For now the ATR value is a constant, logic will be implemented later.
+        ATR_VALUE
+    }
+    // Nothing to do
+    fn power_on(&self) { println!("Power On");}
+    // Nothing to do
+    fn power_off(&self) {println!("Power Off");}
+    // Nothing to do
+    fn reset(&self) {println!("Reset");}
+    // Not implemented
+    fn execute(&self, size : u8, msg: [u8; 128]) {
+        let mut buf = vec![0; size.into()];
+        buf.copy_from_slice(&msg);
+        println!("Received APDU Comand : {:?}", buf);
     }
 }
