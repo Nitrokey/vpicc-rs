@@ -34,8 +34,8 @@ impl Default for SmartCard {
 impl SmartCard {
     pub fn new(host: &'static str, port: u16) -> Self {
         SmartCard{
-            host : host,
-            port : port,
+            host,
+            port,
         }
     }
     pub fn run(&mut self) {
