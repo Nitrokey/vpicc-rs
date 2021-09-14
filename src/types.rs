@@ -1,7 +1,7 @@
 use std::io::prelude::*;
 use std::net::{TcpStream, Shutdown};
 
-use log::{info, warn};
+use log::warn;
 
 use crate::constants::*;
 
@@ -39,7 +39,11 @@ impl SmartCard {
     // Nothing to do
     fn reset(&self) {println!("Reset");}
     // Not implemented
-    fn execute(&self) { info!("Not implemented APDU commands");}
+    fn execute(&self, size : u8, msg: [u8; 128]) {
+        let mut buf = vec![0; size.into()];
+        buf.copy_from_slice(&msg);
+        println!("Received APDU Comand : {:?}", buf);
+    }
     pub fn run(&mut self) {
         let mut stream = TcpStream::connect((self.host, self.port)).expect("Unable to connect to VPCD");
 
@@ -79,7 +83,7 @@ impl SmartCard {
                 println!("Virtual PCD Shut down.");
                 break;
             } else {
-                self.execute();
+                self.execute(size, msg);
                 println!("Wrong size received");
             }
         }
