@@ -1,11 +1,10 @@
 [package]
 name = "vpicc-rs"
 version = "0.1.0"
-author = ["Nehalenniæ Lilith Oudin <oudin@crans.org>"]
+authors = ["Nehalenniæ Lilith Oudin <oudin@crans.org>"]
 edition = "2018"
 description = "A small library to emulate a VirtualICC, to connect to for exemple vpcd"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 log = "0.4.14"
