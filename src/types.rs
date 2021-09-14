@@ -14,7 +14,7 @@ pub trait VSmartCard {
     // Nothing to do
     fn reset(&self);
     // Not implemented
-    fn execute(&self, size : u8, msg: [u8; 128]);
+    fn execute(&self, size : u8, msg: [u8; 1]);
 }
 
 pub struct SmartCard {
@@ -40,6 +40,15 @@ impl SmartCard {
     }
     pub fn run(&mut self) {
         let mut stream = TcpStream::connect((self.host, self.port)).expect("Unable to connect to VPCD");
+        println!("Sending ATR");
+        let atr = self.get_atr();
+        // [0x00, size, ;, atr
+        let msg_o = [&[0x00], &[11], &[59], &atr[..]].concat();
+        let bytes_written = stream.write(&msg_o).expect("Unable to send the message. Virtual PCD shut down,");
+        if bytes_written == 0 {
+            println!("Error sending ATR");
+        }
+        println!("Finished sending ATR");
 
         loop {
             let mut _size = [0, 0];
@@ -48,11 +57,12 @@ impl SmartCard {
             if byte_read == 0 {
                 break;
             }
-            let mut msg = [0; 128];
+            let mut msg = [0; 1];
             let byte_read =stream.read(&mut msg).expect("VirtualPCD shut down.");
             if byte_read == 0 {
                 break;
             }
+            println!("MSG : {:?}", msg);
 
             if size == VPCD_CTRL_LEN {
                 match msg[0] {
@@ -97,7 +107,7 @@ impl VSmartCard for SmartCard {
     // Nothing to do
     fn reset(&self) {println!("Reset");}
     // Not implemented
-    fn execute(&self, size : u8, msg: [u8; 128]) {
+    fn execute(&self, size : u8, msg: [u8; 1]) {
         let mut buf = vec![0; size.into()];
         buf.copy_from_slice(&msg);
         println!("Received APDU Comand : {:?}", buf);
