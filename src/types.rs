@@ -5,18 +5,26 @@ use log::{info, warn};
 
 use crate::constants::*;
 
-#[derive(Default)]
 pub struct SmartCard {
     host : &'static str,
     port : u16,
 }
 
-
-impl SmartCard {
-    pub fn new() -> Self {
+impl Default for SmartCard {
+    fn default() -> SmartCard {
         SmartCard{
             host : "127.0.0.1",
             port : 35963,
+        }
+    }
+}
+
+impl SmartCard {
+
+    pub fn new(host: &'static str, port: u16) -> Self {
+        SmartCard{
+            host : host,
+            port : port,
         }
     }
 
