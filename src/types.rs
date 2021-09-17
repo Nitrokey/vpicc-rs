@@ -14,7 +14,7 @@ pub trait VSmartCard {
     // Nothing to do
     fn reset(&self);
     // Not implemented
-    fn execute(&self, size : u8, msg: Vec<u8>);
+    fn execute(&self, msg: Vec<u8>);
 }
 
 pub struct SmartCard {
@@ -86,7 +86,7 @@ impl SmartCard {
                 println!("Virtual PCD Shut down.");
                 break;
             } else {
-                self.execute(size, msg);
+                self.execute(msg);
                 println!("Wrong size received");
             }
         }
@@ -106,9 +106,7 @@ impl VSmartCard for SmartCard {
     // Nothing to do
     fn reset(&self) {println!("Reset");}
     // Not implemented
-    fn execute(&self, size : u8, msg: Vec<u8>) {
-        let mut buf = vec![0; size.into()];
-        buf.copy_from_slice(&msg);
-        println!("Received APDU Comand : {:?}", buf);
+    fn execute(&self, msg: Vec<u8>) {
+        println!("Received APDU Comand : {:?}", msg);
     }
 }
