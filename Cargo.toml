@@ -1,5 +1,5 @@
 [package]
-name = "vpicc-rs"
+name = "vpicc"
 version = "0.1.0"
 authors = ["Nehalenniæ Lilith Oudin <oudin@crans.org>"]
 edition = "2018"

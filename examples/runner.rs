@@ -1,6 +1,6 @@
-use vpicc_rs::types::SmartCard;
+use vpicc::types::SmartCard;
 
 fn main() {
-    let mut card : SmartCard = Default::default();
+    let mut card = SmartCard::default();
     card.run();
 }
