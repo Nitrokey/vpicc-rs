@@ -50,55 +50,79 @@ impl<C: VSmartCard> SmartCard<C> {
     }
 
     pub fn run(&mut self) {
-        info!("Connecting to vpcd on {}:{}", self.host, self.port);
-        let mut stream = TcpStream::connect((self.host, self.port)).expect("Unable to connect to VPCD");
-        let atr = self.card.get_atr();
-
-        loop {
-            let mut size = [0, 0];
-            let byte_read = stream.read(&mut size).expect("VirtualPCD shut down.");
-            let size = usize::from(u16::from_be_bytes(size));
-            if byte_read == 0 {
-                break;
-            }
-
-            let mut msg = vec![0u8; size];
-            stream.read_exact(&mut msg).expect("VirtualPCD shut down.");
-
-            trace!("MSG : {:?}", msg);
-
-            if size == VPCD_CTRL_LEN {
-                match msg[0] {
-                    VPCD_CTRL_OFF => self.card.power_off(),
-                    VPCD_CTRL_ON => self.card.power_on(),
-                    VPCD_CTRL_RESET => self.card.reset(),
-                    VPCD_CTRL_ATR => {
-                        debug!("Sending ATR");
-                        send(&mut stream, &atr);
-                    },
-                    _ => warn!("Unknown command"),
-                }
-            } else if size == 0 {
-                info!("Virtual PCD Shut down.");
-                break;
-            } else {
-                debug!("APDU received");
-                trace!("received: {:x?}", msg);
-                let response = self.card.execute(&msg);
-                trace!("response: {:X?}", response);
-                send(&mut stream, &response);
-            }
+        let mut connection = self.connect();
+        let mut cont = true;
+        while cont {
+            cont = connection.poll();
         }
-        stream.shutdown(Shutdown::Both).expect("Impossible to shut down");
+        connection.shutdown();
+    }
+
+    pub fn connect(&mut self) -> Connection<'_, C> {
+        info!("Connecting to vpcd on {}:{}", self.host, self.port);
+        let stream = TcpStream::connect((self.host, self.port)).expect("Unable to connect to VPCD");
+        Connection {
+            stream,
+            card: &mut self.card,
+        }
     }
 }
 
-fn send(stream: &mut TcpStream, data: &[u8]) {
-    let size = (data.len() as u16).to_be_bytes();
-    let msg = &[&size[..], data].concat();
-    let bytes_written = stream.write(msg).expect("Unable to send the message. Virtual PCD shut down,");
-    if bytes_written < msg.len() {
-        panic!("failed to write all data");
+pub struct Connection<'a, C: VSmartCard> {
+    stream: TcpStream,
+    card: &'a mut C,
+}
+
+impl<'a, C: VSmartCard> Connection<'a, C> {
+    pub fn poll(&mut self) -> bool {
+        let mut size = [0, 0];
+        let byte_read = self.stream.read(&mut size).expect("VirtualPCD shut down.");
+        let size = usize::from(u16::from_be_bytes(size));
+        if byte_read == 0 {
+            return false;
+        }
+
+        let mut msg = vec![0u8; size];
+        self.stream.read_exact(&mut msg).expect("VirtualPCD shut down.");
+
+        trace!("MSG : {:?}", msg);
+
+        if size == VPCD_CTRL_LEN {
+            match msg[0] {
+                VPCD_CTRL_OFF => self.card.power_off(),
+                VPCD_CTRL_ON => self.card.power_on(),
+                VPCD_CTRL_RESET => self.card.reset(),
+                VPCD_CTRL_ATR => {
+                    debug!("Sending ATR");
+                    self.send(&self.card.get_atr());
+                },
+                _ => warn!("Unknown command"),
+            }
+        } else if size == 0 {
+            info!("Virtual PCD Shut down.");
+            return false;
+        } else {
+            debug!("APDU received");
+            trace!("received: {:x?}", msg);
+            let response = self.card.execute(&msg);
+            trace!("response: {:X?}", response);
+            self.send(&response);
+        }
+
+        true
+    }
+
+    pub fn shutdown(&self) {
+        self.stream.shutdown(Shutdown::Both).expect("Impossible to shut down");
+    }
+
+    fn send(&mut self, data: &[u8]) {
+        let size = (data.len() as u16).to_be_bytes();
+        let msg = &[&size[..], data].concat();
+        let bytes_written = self.stream.write(msg).expect("Unable to send the message. Virtual PCD shut down,");
+        if bytes_written < msg.len() {
+            panic!("failed to write all data");
+        }
     }
 }
 
