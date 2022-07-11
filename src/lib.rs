@@ -1,3 +1,37 @@
+//! Interface to the [vsmartcard][] daemon.
+//!
+//! This crate makes it possible to connect to a `vpcd` daemon and add a virtual smartcard by
+//! implementing the [`VSmartCard`][] trait.
+//!
+//! # Examples
+//!
+//! ## Running a dummy smartcard
+//!
+//! ```no_run
+//! fn main() -> std::io::Result<()> {
+//!     vpicc::connect()?.run(&mut vpicc::DummySmartCard)
+//! }
+//! ```
+//!
+//! ## Running a custom smartcard
+//!
+//! ```no_run
+//! struct Card;
+//!
+//! impl vpicc::VSmartCard for Card {
+//!     fn execute(&mut self, data: &[u8]) -> Vec<u8> {
+//!         log::info!("Received APDU: {:x?}", data);
+//!         vec![0x90, 0x00]  // 9000 == Success
+//!     }
+//! }
+//!
+//! fn main() -> std::io::Result<()> {
+//!     vpicc::connect()?.run(&mut Card)
+//! }
+//! ```
+//!
+//! [vsmartcard]: https://frankmorgner.github.io/vsmartcard/index.html
+
 use std::{
     fmt::Display,
     io::{Error, ErrorKind, Read, Result, Write},
@@ -6,43 +40,67 @@ use std::{
 
 use log::{debug, info, trace};
 
+/// The default host used in [`connect`][].
 pub const DEFAULT_HOST: Ipv4Addr = Ipv4Addr::LOCALHOST;
+/// The default port used in [`connect`][].
 pub const DEFAULT_PORT: u16 = 35963;
+/// The default ATR used in [`DummySmartCard`][].
 pub const DEFAULT_ATR: &[u8] = &[
     0x3b, 0x95, 0x13, 0x81, 0x01, 0x80, 0x73, 0xff, 0x01, 0x00, 0x0B,
 ];
 
+/// Connects to the vpcd dameon using [`DEFAULT_HOST`][] and [`DEFAULT_PORT`][].
 pub fn connect() -> Result<Connection> {
     connect_socket(SocketAddr::new(DEFAULT_HOST.into(), DEFAULT_PORT))
 }
 
+/// Connects to the vpcd daemon at the given address.
 pub fn connect_socket<A: ToSocketAddrs + Display>(addr: A) -> Result<Connection> {
     info!("Connecting to vpcd on {}", addr);
     TcpStream::connect(addr).map(Connection::from)
 }
 
+/// A virtual smartcard implementation.
+///
+/// See the [vsmartcard][] documentation for more information about the API.
+///
+/// [vsmartcard]: https://frankmorgner.github.io/vsmartcard/virtualsmartcard/api.html
 pub trait VSmartCard {
+    /// The ATR of this smartcard, defaulting to [`DEFAULT_ATR`].
     fn atr(&self) -> &[u8] {
         DEFAULT_ATR
     }
+
+    /// Handles a Power On command.
     fn power_on(&mut self) {}
+
+    /// Handles a Power Off command.
     fn power_off(&mut self) {}
+
+    /// Handles a Reset command.
     fn reset(&mut self) {}
+
+    /// Executes the given APDU command and returns the response APDU.
     fn execute(&mut self, msg: &[u8]) -> Vec<u8>;
 }
 
+/// A connection to the vpcd daemon.
 #[derive(Debug)]
 pub struct Connection {
     stream: TcpStream,
 }
 
 impl Connection {
+    /// Handles all commands from this connection using the given card.
+    ///
+    /// This is equivalent to calling [`poll`][`Connection::poll`] until a call fails.
     pub fn run<V: VSmartCard>(mut self, card: &mut V) -> Result<()> {
         loop {
             self.poll(card)?;
         }
     }
 
+    /// Handles a single command from this connection using the given card.
     pub fn poll<V: VSmartCard>(&mut self, card: &mut V) -> Result<()> {
         let msg = self.read()?;
         if msg.is_empty() {
@@ -118,6 +176,8 @@ impl TryFrom<u8> for Command {
     }
 }
 
+/// A dummy [`VSmartCard`][] implementation that prints to the log instead of performing any
+/// action.
 pub struct DummySmartCard;
 
 impl VSmartCard for DummySmartCard {
