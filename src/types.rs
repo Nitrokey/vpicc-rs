@@ -113,9 +113,9 @@ impl TryFrom<u8> for Command {
 pub struct DummySmartCard;
 
 impl VSmartCard for DummySmartCard {
-    fn power_on(&mut self) { println!("Power On");}
-    fn power_off(&mut self) {println!("Power Off");}
-    fn reset(&mut self) {println!("Reset");}
+    fn power_on(&mut self) { info!("Power On");}
+    fn power_off(&mut self) { info!("Power Off");}
+    fn reset(&mut self) { info!("Reset");}
     fn execute(&mut self, msg: &[u8]) -> Vec<u8> {
         info!("Received APDU Comand : {:?}", msg);
         vec![0x90, 0x00]
