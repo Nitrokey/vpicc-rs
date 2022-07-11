@@ -1,6 +1,4 @@
-use vpicc::types::SmartCard;
-
 fn main() {
-    let mut card = SmartCard::default();
-    card.run();
+    env_logger::init();
+    vpicc::connect().run(&mut vpicc::DummySmartCard)
 }

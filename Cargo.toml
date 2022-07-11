@@ -5,7 +5,8 @@ authors = ["Nehalenniæ Lilith Oudin <oudin@crans.org>"]
 edition = "2018"
 description = "A small library to emulate a VirtualICC, to connect to for exemple vpcd"
 
-
 [dependencies]
 log = "0.4.14"
-simple_logger = "1.13.0"
+
+[dev-dependencies]
+env_logger = "0.9.0"
