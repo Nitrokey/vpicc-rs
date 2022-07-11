@@ -1,9 +1,15 @@
+# Copyright (C) 2022 Nitrokey GmbH
+# SPDX-License-Identifier: CC0-1.0
+
 [package]
 name = "vpicc"
 version = "0.1.0"
-authors = ["Nehalenniæ Lilith Oudin <oudin@crans.org>"]
+authors = ["Nitrokey GmbH", "Nehalenniæ Lilith Oudin <oudin@crans.org>"]
+license = "MIT"
 edition = "2021"
-description = "A small library to emulate a VirtualICC, to connect to for exemple vpcd"
+description = "interface for adding virtual smartcards using vsmartcard"
+license = "MIT"
+repository = "https://github.com/nitrokey/vpicc-rs"
 
 [dependencies]
 log = "0.4.14"

@@ -1,3 +1,7 @@
+// Copyright (C) 2022 Nitrokey GmbH
+// Copyright (C) Nehalenniæ Lilith Oudin <oudin@crans.org>
+// SPDX-License-Identifier: MIT
+
 //! Interface to the [vsmartcard][] daemon.
 //!
 //! This crate makes it possible to connect to a `vpcd` daemon and add a virtual smartcard by
