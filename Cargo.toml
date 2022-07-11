@@ -2,7 +2,7 @@
 name = "vpicc"
 version = "0.1.0"
 authors = ["Nehalenniæ Lilith Oudin <oudin@crans.org>"]
-edition = "2018"
+edition = "2021"
 description = "A small library to emulate a VirtualICC, to connect to for exemple vpcd"
 
 [dependencies]
