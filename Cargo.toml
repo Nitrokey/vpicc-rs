@@ -8,7 +8,6 @@ authors = ["Nitrokey GmbH", "Nehalenniæ Lilith Oudin <oudin@crans.org>"]
 license = "MIT"
 edition = "2021"
 description = "interface for adding virtual smartcards using vsmartcard"
-license = "MIT"
 repository = "https://github.com/nitrokey/vpicc-rs"
 
 [dependencies]
