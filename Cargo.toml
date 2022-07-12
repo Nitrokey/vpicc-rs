@@ -4,7 +4,7 @@
 [package]
 name = "vpicc"
 version = "0.1.0"
-authors = ["Nitrokey GmbH", "Nehalenniæ Lilith Oudin <oudin@crans.org>"]
+authors = ["Nitrokey GmbH <info@nitrokey.com>", "Nehalenniæ Lilith Oudin <oudin@crans.org>"]
 license = "MIT"
 edition = "2021"
 description = "interface for adding virtual smartcards using vsmartcard"
